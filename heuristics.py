@@ -26,14 +26,16 @@ class AdvanceHeuristic:
     def __init__(self, n=11, k=4):
         self._n = n
         self._k = k
+        self.goal_state = sorted([i for i in range(1, n + 1)])
 
     def get_h_value(self, state):
-        h = 0
-        # todo
-        return h
+        current_state = state.get_state_as_list()
+        manhattan_distance = sum(abs(goal_tile_pos - curr_tile_pos)
+                                 for curr_tile_pos, goal_tile_pos in zip(current_state, self.goal_state))
+        return manhattan_distance  # This is the Manhattan distance heuristic
 
 
-class LearnedHeuristic
+class LearnedHeuristic:
 
     def __init__(self, n=11, k=4):
         self._n = n
