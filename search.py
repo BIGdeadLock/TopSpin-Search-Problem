@@ -47,8 +47,6 @@ def search(start, priority_function, heuristic_function):
         # Pop the state with the highest priority from the priority queue
         _, current_state = heapq.heappop(priority_queue)
 
-        # tq.update(1)
-
         # Check if the current state is the goal state
         if current_state.is_goal():
             return build_path(current_state), expansions

@@ -1,7 +1,7 @@
 from keras.models import Sequential
 from keras.layers import Dense, Dropout
 import numpy as np
-
+from scipy.stats import kendalltau
 
 class BaseHeuristic:
     def __init__(self, n=11, k=4):
@@ -26,14 +26,32 @@ class AdvanceHeuristic:
     def __init__(self, n=11, k=4):
         self._n = n
         self._k = k
-        self.goal_state = sorted([i for i in range(1, n + 1)])
+        self.goal_state = np.array(sorted([i for i in range(1, n + 1)]))
 
     def get_h_value(self, state):
-        current_state = state.get_state_as_list()
-        manhattan_distance = sum(abs(goal_tile_pos - curr_tile_pos)
-                                 for curr_tile_pos, goal_tile_pos in zip(current_state, self.goal_state))
+        board = np.array(state.get_state_as_list())  # Convert to a NumPy array
+        manhattan_distance = np.sum(np.abs(board - self.goal_state))
         return manhattan_distance  # This is the Manhattan distance heuristic
 
+class SeperateHeuristics:
+    def __init__(self, n=11, k=4):
+        self._n = n
+        self._k = k
+
+    def get_h_value(self, state):
+        return np.diff(state.get_state_as_list()).sum()
+
+class KendellTauHeuristic:
+    def __init__(self, n=11, k=4):
+        self._n = n
+        self._k = k
+        self.goal_state = np.array(sorted([i for i in range(1, n + 1)]))
+
+    def get_h_value(self, state):
+        board = np.array(state.get_state_as_list())  # Convert to a NumPy array
+        tau, _ = kendalltau(board, self.goal_state)
+        distance = len(board) - tau * len(board)
+        return distance  # This is the Kendall Tau distance heuristic
 
 class LearnedHeuristic:
 
