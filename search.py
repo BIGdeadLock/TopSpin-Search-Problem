@@ -1,12 +1,9 @@
 import heapq
 
 # TODO: Delete tqdm
-import time
-
 from tqdm import tqdm
 
 tq = tqdm()
-
 
 def build_path(goal):
     """
@@ -21,6 +18,44 @@ def build_path(goal):
         path.append(current)
         current = current.parent
     return path[::-1]
+
+import heapq
+
+class OpenList:
+    def __init__(self):
+        self.items = {}
+        self.heap = []
+        self.counter = 0
+
+    def insert(self, key, value):
+        self.items[key] = (value, self.counter)
+        heapq.heappush(self.heap, (value, self.counter, key))
+        self.counter += 1
+
+    def update(self, key, new_value):
+        if key in self.items:
+            old_value, counter = self.items[key]
+            if new_value < old_value:
+                self.items[key] = (new_value, counter)
+                self._rebuild_heap()
+
+    def get_min(self):
+        if self.heap:
+            min_value, _, min_key = self.heap[0]
+            return min_key, min_value
+        else:
+            return None
+
+    def _rebuild_heap(self):
+        self.heap = [(value, counter, key) for value, counter, key in self.heap if key in self.items]
+
+    def find(self, key):
+        if key in self.items:
+            value, _ = self.items[key]
+            return value
+        else:
+            return None
+
 
 def search(start, priority_function, heuristic_function):
     """
@@ -42,12 +77,10 @@ def search(start, priority_function, heuristic_function):
     # The cost of the start state is 0
     heapq.heappush(priority_queue, (start.priority, start))
 
-    # Start the search loop
     while priority_queue:
         # Pop the state with the highest priority from the priority queue
         _, current_state = heapq.heappop(priority_queue)
 
-        # Check if the current state is the goal state
         if current_state.is_goal():
             return build_path(current_state), expansions
 
@@ -55,12 +88,12 @@ def search(start, priority_function, heuristic_function):
         if current_state in visited:
             continue
 
+        # TODO: Delete
         tq.update(1)
 
         # Mark the current state as visited
         visited.add(current_state)
 
-        # Increment the number of expansions
         expansions += 1
 
         # Generate all possible successor states
@@ -68,7 +101,15 @@ def search(start, priority_function, heuristic_function):
 
         # Add the successor states to the priority queue with priorities based on the priority function
         for successor, cost in successors:
-            successor.priority = priority_function(current_state.priority + cost, heuristic_function(successor))
+            priority = priority_function(current_state.priority + cost, heuristic_function(successor))
+            # TODO: Use a data structure with O(1) search of an item and O(1) to get the minimum
+            # Check if the successor state is already in the open list
+            # if it is, update it's priority based on the min from the current priority and the old priority
+            old = list(filter(lambda x: x[1] == successor, priority_queue))
+            if old:
+                priority = min(priority, old[0][1].priority)
+            successor.priority = priority
+
             heapq.heappush(priority_queue, (successor.priority, successor))
 
     # No path found

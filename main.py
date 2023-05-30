@@ -15,7 +15,7 @@ advance_heuristic = AdvanceHeuristic(11, 4)
 sep_heuristic = SeperateHeuristics(11, 4)
 # Use timeit to calculate the average time taken to solve the puzzle
 start_time = time.time()
-path, expansions = search(start, f_priority, sep_heuristic.get_h_value)
+path, expansions = search(start, f_priority, basic_heuristic.get_h_value)
 if path is not None:
     print(expansions)
     for vertex in path:
