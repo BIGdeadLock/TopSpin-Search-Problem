@@ -1,9 +1,12 @@
 import heapq
 
-# TODO: Delete tqdm
+
 from tqdm import tqdm
 
+from topspin import TopSpinState
+
 tq = tqdm()
+
 
 def build_path(goal):
     """
@@ -19,42 +22,38 @@ def build_path(goal):
         current = current.parent
     return path[::-1]
 
-import heapq
 
 class OpenList:
     def __init__(self):
         self.items = {}
         self.heap = []
-        self.counter = 0
 
-    def insert(self, key, value):
-        self.items[key] = (value, self.counter)
-        heapq.heappush(self.heap, (value, self.counter, key))
-        self.counter += 1
+    def insert(self, state: TopSpinState, priority: int):
+        key = str(state)  # Use the string representation of the state as a dict key
+        self.items[key] = [priority, state]
+        heapq.heappush(self.heap, self.items[key])
 
-    def update(self, key, new_value):
+    def is_in_queue(self, state: TopSpinState):
+        return str(state) in self.items
+
+    def update(self, state: TopSpinState, new_priority: int):
+        key = str(state)
         if key in self.items:
-            old_value, counter = self.items[key]
-            if new_value < old_value:
-                self.items[key] = (new_value, counter)
-                self._rebuild_heap()
+            item = self.items[key]  # position 0 is the priority and index 1 is the state
+            if new_priority != item[0]:
+                print(f"Update: {state}, old: {item[0]}, new: {new_priority}")
+            if new_priority < item[0]:
+                item[0] = new_priority
+                item[1].priority = new_priority
+                # Sort the heap again
+                heapq.heapify(self.heap)
 
-    def get_min(self):
+    def pop_min(self):
         if self.heap:
-            min_value, _, min_key = self.heap[0]
-            return min_key, min_value
+            priority, state = heapq.heappop(self.heap)
+            return priority, state
         else:
-            return None
-
-    def _rebuild_heap(self):
-        self.heap = [(value, counter, key) for value, counter, key in self.heap if key in self.items]
-
-    def find(self, key):
-        if key in self.items:
-            value, _ = self.items[key]
-            return value
-        else:
-            return None
+            return None, None
 
 
 def search(start, priority_function, heuristic_function):
@@ -67,7 +66,7 @@ def search(start, priority_function, heuristic_function):
     """
     print("#" * 10, "Starting BFS search", "#" * 10)
     # Create a priority queue to store states
-    priority_queue = []
+    priority_queue = OpenList()
     # Create a set to track visited states
     visited = set()
     # Initialize the number of expansions
@@ -75,11 +74,11 @@ def search(start, priority_function, heuristic_function):
 
     # Push the start state to the priority queue with priority based on the priority function
     # The cost of the start state is 0
-    heapq.heappush(priority_queue, (start.priority, start))
+    priority_queue.insert(start, start.priority)
 
     while priority_queue:
         # Pop the state with the highest priority from the priority queue
-        _, current_state = heapq.heappop(priority_queue)
+        _, current_state = priority_queue.pop_min()  # heapq.heappop(priority_queue)
 
         if current_state.is_goal():
             return build_path(current_state), expansions
@@ -87,10 +86,6 @@ def search(start, priority_function, heuristic_function):
         # Check if the current state has been visited before
         if current_state in visited:
             continue
-
-        # TODO: Delete
-        tq.update(1)
-
         # Mark the current state as visited
         visited.add(current_state)
 
@@ -102,15 +97,11 @@ def search(start, priority_function, heuristic_function):
         # Add the successor states to the priority queue with priorities based on the priority function
         for successor, cost in successors:
             priority = priority_function(current_state.priority + cost, heuristic_function(successor))
-            # TODO: Use a data structure with O(1) search of an item and O(1) to get the minimum
-            # Check if the successor state is already in the open list
-            # if it is, update it's priority based on the min from the current priority and the old priority
-            old = list(filter(lambda x: x[1] == successor, priority_queue))
-            if old:
-                priority = min(priority, old[0][1].priority)
-            successor.priority = priority
 
-            heapq.heappush(priority_queue, (successor.priority, successor))
+            if priority_queue.is_in_queue(successor):
+                priority_queue.update(successor, priority)
+            else:
+                priority_queue.insert(successor, priority)
 
     # No path found
     return None, 0

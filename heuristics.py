@@ -29,9 +29,14 @@ class AdvanceHeuristic:
         self.goal_state = np.array(sorted([i for i in range(1, n + 1)]))
 
     def get_h_value(self, state):
-        board = np.array(state.get_state_as_list())  # Convert to a NumPy array
-        manhattan_distance = np.sum(np.abs(board - self.goal_state))
-        return manhattan_distance  # This is the Manhattan distance heuristic
+        state_as_list = state.get_state_as_list()
+        gap = 0
+
+        for i in range(len(state_as_list) - 1):
+            if abs(state_as_list[i] - state_as_list[i + 1]) != 1:
+                gap += 1
+
+        return gap
 
 class SeperateHeuristics:
     def __init__(self, n=11, k=4):

@@ -44,6 +44,6 @@ class TopSpinState:
         # Reverse the order of the first k elements
         reverse_state = np.copy(self.state)
         reverse_state[:self.k] = np.flip(reverse_state[:self.k])
-        neighbors.append((TopSpinState(reverse_state, self.k, parent=self), 2))
+        neighbors.append((TopSpinState(reverse_state, self.k, parent=self), 1))
 
         return neighbors
