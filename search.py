@@ -1,14 +1,9 @@
 import heapq
 
-
-from tqdm import tqdm
-
 from topspin import TopSpinState
 
-tq = tqdm()
 
-
-def build_path(goal):
+def build_path(goal: TopSpinState):
     """
     Get the goal state and build the path from the start state to the goal state
     :param goal: TopSpinState object
