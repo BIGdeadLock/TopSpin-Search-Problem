@@ -26,7 +26,6 @@ class AdvanceHeuristic:
     def __init__(self, n=11, k=4):
         self._n = n
         self._k = k
-        self.goal_state = np.array(sorted([i for i in range(1, n + 1)]))
 
     def get_h_value(self, state):
         state_as_list = state.get_state_as_list()
