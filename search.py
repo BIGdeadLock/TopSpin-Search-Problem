@@ -35,9 +35,8 @@ class OpenList:
         key = str(state)
         if key in self.items:
             item = self.items[key]  # position 0 is the priority and index 1 is the state
-            if new_priority != item[0]:
-                print(f"Update: {state}, old: {item[0]}, new: {new_priority}")
             if new_priority < item[0]:
+                print(f"Update: {state}, old: {item[0]}, new: {new_priority}")
                 item[0] = new_priority
                 item[1].priority = new_priority
                 # Sort the heap again
@@ -85,14 +84,13 @@ def search(start, priority_function, heuristic_function):
         visited.add(current_state)
 
         expansions += 1
-
         # Generate all possible successor states
         successors = current_state.get_neighbors()
 
         # Add the successor states to the priority queue with priorities based on the priority function
         for successor, cost in successors:
             priority = priority_function(current_state.priority + cost, heuristic_function(successor))
-
+            successor.priority = priority
             if priority_queue.is_in_queue(successor):
                 priority_queue.update(successor, priority)
             else:

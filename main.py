@@ -42,7 +42,7 @@ def run_search(instance):
     start = TopSpinState(instance, 4)
     for algo_name, search_algo in method_names.items():
         for heuristic_name, heuristic in heuristic_names.items():
-            print(f"Using heuristic: {heuristic_name} and algorithm: {algo_name}\n on problem: {instance}")
+            print(f"Using: \n heuristic: {heuristic_name}\n  algorithm: {algo_name}\n on problem: {instance}")
             start_time = time.time()
             path, expansions = search(start, search_algo, heuristic(11, 4).get_h_value)
             end_time = time.time()
@@ -57,6 +57,7 @@ def run_search(instance):
                                     "path_length": [path_length],
                                     "expansions": [expansions]
                                 })])
+            print(f"Runtime for problem:{instance} is: {runtime}")
 
 
 random.seed(42)  # Set a seed for reproducibility
