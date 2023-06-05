@@ -36,7 +36,6 @@ class OpenList:
         if key in self.items:
             item = self.items[key]  # position 0 is the priority and index 1 is the state
             if new_priority < item[0]:
-                print(f"Update: {state}, old: {item[0]}, new: {new_priority}")
                 item[0] = new_priority
                 item[1].priority = new_priority
                 # Sort the heap again
