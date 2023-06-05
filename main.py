@@ -5,6 +5,10 @@ from priorities import f_priority, h_priority, fw_priority
 from search import search
 from topspin import TopSpinState
 import pandas as pd
+from tqdm import trange
+
+easy_problem = [1, 7, 10, 3, 6, 9, 5, 8, 2, 4, 11]  # easy instance
+hard_problem = [1, 5, 11, 2, 6, 3, 9, 4, 10, 7, 8]  # hard instance
 
 result = pd.DataFrame(columns=['method', "heuristic", "runtime", "path_length", "expansions"])
 method_names = {
@@ -18,23 +22,36 @@ heuristic_names = {
 }
 
 
-def is_solvable(instance):
+def random_walks(start_state: TopSpinState, number_of_potential_walks, number_of_instances_to_create=25) -> list:
     """
-     function to check if an instance is solvable based on the parity of inversions.
-     The goal state has 0 inversions since it is sorted in an ascending order meaning that the parity is even.
-     Therefore the instance given shold has a even parity as well to be considered solvable.
-    :param instance: List of numbers
-    :return: True - solvable, false - not solvable
+    To create a solvable solution, we will create random walks which will result in an instance which has a path to the goal.
+    We will delete cycles if there any
+    :param start_state: The start of the random walks
+    :param number_of_potential_walks: integer: sample the path length from 0 to the value of the argument
+    :param number_of_instances_to_create: how many instaces to create
+    :return: list of np.array of solvable start states
     """
-    # Count the number of inversions
-    inversions = 0
-    for i in range(len(instance) - 1):
-        for j in range(i + 1, len(instance)):
-            if instance[i] > instance[j]:
-                inversions += 1
+    problem_instances = []
 
-    # Check if the number of inversions has the same parity as the goal state
-    return inversions % 2 == 0
+    for _ in trange(number_of_instances_to_create, unit="instances"):
+        permutation = start_state
+        visited_states = {start_state}  # Will be used to prevent cycles
+        number_of_walks = random.randint(1, number_of_potential_walks)
+
+        for _ in range(number_of_walks):
+            candidates = permutation.get_neighbors()
+            action = random.randint(0, 2)  # Select an action at random
+            next_permutation = candidates[action][0]
+            if next_permutation in visited_states:
+                # Cycle detected, choose a different action or backtrack
+                continue
+            permutation = next_permutation
+            visited_states.add(permutation)
+
+        # Add the final permutation to the list of instances
+        problem_instances.append(permutation.state)
+
+    return problem_instances
 
 
 def run_search(instance):
@@ -58,25 +75,22 @@ def run_search(instance):
                                     "expansions": [expansions]
                                 })])
             print(f"Runtime for problem:{instance} is: {runtime}")
+            result.to_csv("report.csv")
 
 
 random.seed(42)  # Set a seed for reproducibility
-
 
 # Run 50 random solvable instances
 instances = []
 
 # Create the list of 50 solvable instances.
-while len(instances) < 50:
-    instance = random.sample(range(1, 12), 11)
-    if is_solvable(instance=instance):
-        instances.append(instance)
-    else:
-        print(f"Instance: {instance} is not solvable")
+print("Creating 50 solvable instances to solve")
+instances += random_walks(TopSpinState(easy_problem, 4), number_of_potential_walks=1000)
+instances += random_walks(TopSpinState(hard_problem, 4), number_of_potential_walks=1000)
 
 for instance in instances:
     run_search(instance)
-    print() # Blank line
+    print()  # Blank line
 
 report = result.groupby(by=["method", "heuristic"]).mean()
 print(report)
