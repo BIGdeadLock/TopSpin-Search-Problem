@@ -88,7 +88,7 @@ instances = []
 
 # Create the list of 50 solvable instances.
 print("Creating 50 solvable instances to solve")
-instances += random_walks(TopSpinState(np.array(range(1,12)), 4), number_of_potential_walks=1000, number_of_instances_to_create=20)
+instances += random_walks(TopSpinState(np.array(range(1,12)), 4), number_of_potential_walks=1000)
 
 for instance in tqdm(instances):
     run_search(instance)
